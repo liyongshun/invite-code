@@ -6,8 +6,8 @@ import com.company.invitecode.dto.request.GenerateInviteCodeRequest;
 import com.company.invitecode.dto.request.VerifyInviteCodeRequest;
 import com.company.invitecode.dto.response.ApiResponse;
 import com.company.invitecode.service.InviteCodeService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,13 +20,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
-@Slf4j
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/invite-codes")
 public class InviteCodeController {
 
+    private static final Logger log = LoggerFactory.getLogger(InviteCodeController.class);
+
     private final InviteCodeService inviteCodeService;
+
+    public InviteCodeController(InviteCodeService inviteCodeService) {
+        this.inviteCodeService = inviteCodeService;
+    }
 
     /**
      * 生成邀请码

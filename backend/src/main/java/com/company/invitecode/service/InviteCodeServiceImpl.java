@@ -8,8 +8,8 @@ import com.company.invitecode.model.InviteCode;
 import com.company.invitecode.model.UsageRecord;
 import com.company.invitecode.repository.InviteCodeRepository;
 import com.company.invitecode.repository.UsageRecordRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -23,13 +23,18 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class InviteCodeServiceImpl implements InviteCodeService {
+
+    private static final Logger log = LoggerFactory.getLogger(InviteCodeServiceImpl.class);
 
     private final InviteCodeRepository inviteCodeRepository;
     private final UsageRecordRepository usageRecordRepository;
+
+    public InviteCodeServiceImpl(InviteCodeRepository inviteCodeRepository, UsageRecordRepository usageRecordRepository) {
+        this.inviteCodeRepository = inviteCodeRepository;
+        this.usageRecordRepository = usageRecordRepository;
+    }
 
     /**
      * 生成随机邀请码
@@ -55,12 +60,11 @@ public class InviteCodeServiceImpl implements InviteCodeService {
                 code = generateRandomCode();
             } while (inviteCodeRepository.existsByCode(code));
             
-            InviteCode inviteCode = InviteCode.builder()
-                    .code(code)
-                    .batchId(batchId)
-                    .createdBy(createdBy)
-                    .isActive(true)
-                    .build();
+            InviteCode inviteCode = new InviteCode();
+            inviteCode.setCode(code);
+            inviteCode.setBatchId(batchId);
+            inviteCode.setCreatedBy(createdBy);
+            inviteCode.setActive(true);
             
             inviteCodes.add(inviteCode);
         }
@@ -84,12 +88,11 @@ public class InviteCodeServiceImpl implements InviteCodeService {
         InviteCode inviteCode = optionalInviteCode.get();
         
         // 记录使用记录
-        UsageRecord usageRecord = UsageRecord.builder()
-                .inviteCode(inviteCode)
-                .userId(request.getUserId())
-                .ipAddress(ipAddress)
-                .userAgent(userAgent)
-                .build();
+        UsageRecord usageRecord = new UsageRecord();
+        usageRecord.setInviteCode(inviteCode);
+        usageRecord.setUserId(request.getUserId());
+        usageRecord.setIpAddress(ipAddress);
+        usageRecord.setUserAgent(userAgent);
         
         usageRecordRepository.save(usageRecord);
         log.info("邀请码使用成功: {}, 用户: {}", request.getCode(), request.getUserId());
@@ -175,15 +178,15 @@ public class InviteCodeServiceImpl implements InviteCodeService {
     private InviteCodeDto convertToDto(InviteCode inviteCode) {
         int usageCount = usageRecordRepository.countByInviteCode(inviteCode);
         
-        return InviteCodeDto.builder()
-                .id(inviteCode.getId())
-                .code(inviteCode.getCode())
-                .batchId(inviteCode.getBatchId())
-                .createdAt(inviteCode.getCreatedAt())
-                .createdBy(inviteCode.getCreatedBy())
-                .isActive(inviteCode.isActive())
-                .usageCount(usageCount)
-                .build();
+        InviteCodeDto dto = new InviteCodeDto();
+        dto.setId(inviteCode.getId());
+        dto.setCode(inviteCode.getCode());
+        dto.setBatchId(inviteCode.getBatchId());
+        dto.setCreatedAt(inviteCode.getCreatedAt());
+        dto.setCreatedBy(inviteCode.getCreatedBy());
+        dto.setActive(inviteCode.isActive());
+        dto.setUsageCount(usageCount);
+        return dto;
     }
     
     /**
@@ -193,13 +196,13 @@ public class InviteCodeServiceImpl implements InviteCodeService {
      * @return 使用记录DTO
      */
     private UsageRecordDto convertToDto(UsageRecord usageRecord) {
-        return UsageRecordDto.builder()
-                .id(usageRecord.getId())
-                .inviteCode(usageRecord.getInviteCode().getCode())
-                .userId(usageRecord.getUserId())
-                .ipAddress(usageRecord.getIpAddress())
-                .userAgent(usageRecord.getUserAgent())
-                .usedAt(usageRecord.getUsedAt())
-                .build();
+        UsageRecordDto dto = new UsageRecordDto();
+        dto.setId(usageRecord.getId());
+        dto.setInviteCode(usageRecord.getInviteCode().getCode());
+        dto.setUserId(usageRecord.getUserId());
+        dto.setIpAddress(usageRecord.getIpAddress());
+        dto.setUserAgent(usageRecord.getUserAgent());
+        dto.setUsedAt(usageRecord.getUsedAt());
+        return dto;
     }
 } 

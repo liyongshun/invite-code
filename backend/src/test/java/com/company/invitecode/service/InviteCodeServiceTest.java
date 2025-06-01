@@ -46,40 +46,41 @@ public class InviteCodeServiceTest {
 
     @BeforeEach
     void setUp() {
-        inviteCode = InviteCode.builder()
-                .id(1L)
-                .code(testCode)
-                .batchId(UUID.randomUUID().toString())
-                .createdAt(LocalDateTime.now())
-                .createdBy("admin")
-                .isActive(true)
-                .usageRecords(new ArrayList<>())
-                .build();
+        inviteCode = new InviteCode();
+        inviteCode.setId(1L);
+        inviteCode.setCode(testCode);
+        inviteCode.setBatchId(UUID.randomUUID().toString());
+        inviteCode.setCreatedAt(LocalDateTime.now());
+        inviteCode.setCreatedBy("admin");
+        inviteCode.setActive(true);
+        inviteCode.setUsageRecords(new ArrayList<>());
 
-        usageRecord = UsageRecord.builder()
-                .id(1L)
-                .inviteCode(inviteCode)
-                .userId("user123")
-                .ipAddress("127.0.0.1")
-                .userAgent("Mozilla/5.0")
-                .usedAt(LocalDateTime.now())
-                .build();
+        usageRecord = new UsageRecord();
+        usageRecord.setId(1L);
+        usageRecord.setInviteCode(inviteCode);
+        usageRecord.setUserId("user123");
+        usageRecord.setIpAddress("127.0.0.1");
+        usageRecord.setUserAgent("Mozilla/5.0");
+        usageRecord.setUsedAt(LocalDateTime.now());
     }
 
     @Test
     void generateInviteCodes_ShouldReturnGeneratedCodes() {
         // Arrange
-        GenerateInviteCodeRequest request = new GenerateInviteCodeRequest(5, "测试批次");
+        GenerateInviteCodeRequest request = new GenerateInviteCodeRequest();
+        request.setCount(5);
+        request.setDescription("测试批次");
+        
         List<InviteCode> inviteCodes = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            inviteCodes.add(InviteCode.builder()
-                    .id((long) i)
-                    .code("TEST" + i)
-                    .batchId(UUID.randomUUID().toString())
-                    .createdAt(LocalDateTime.now())
-                    .createdBy("admin")
-                    .isActive(true)
-                    .build());
+            InviteCode code = new InviteCode();
+            code.setId((long) i);
+            code.setCode("TEST" + i);
+            code.setBatchId(UUID.randomUUID().toString());
+            code.setCreatedAt(LocalDateTime.now());
+            code.setCreatedBy("admin");
+            code.setActive(true);
+            inviteCodes.add(code);
         }
         
         when(inviteCodeRepository.saveAll(anyList())).thenReturn(inviteCodes);
@@ -95,7 +96,10 @@ public class InviteCodeServiceTest {
     @Test
     void verifyInviteCode_WithValidCode_ShouldReturnTrue() {
         // Arrange
-        VerifyInviteCodeRequest request = new VerifyInviteCodeRequest(testCode, "user123");
+        VerifyInviteCodeRequest request = new VerifyInviteCodeRequest();
+        request.setCode(testCode);
+        request.setUserId("user123");
+        
         when(inviteCodeRepository.findByCode(testCode)).thenReturn(Optional.of(inviteCode));
         when(usageRecordRepository.save(any(UsageRecord.class))).thenReturn(usageRecord);
 
@@ -111,7 +115,10 @@ public class InviteCodeServiceTest {
     @Test
     void verifyInviteCode_WithInvalidCode_ShouldReturnFalse() {
         // Arrange
-        VerifyInviteCodeRequest request = new VerifyInviteCodeRequest("INVALID", "user123");
+        VerifyInviteCodeRequest request = new VerifyInviteCodeRequest();
+        request.setCode("INVALID");
+        request.setUserId("user123");
+        
         when(inviteCodeRepository.findByCode("INVALID")).thenReturn(Optional.empty());
 
         // Act
@@ -127,7 +134,10 @@ public class InviteCodeServiceTest {
     void verifyInviteCode_WithInactiveCode_ShouldReturnFalse() {
         // Arrange
         inviteCode.setActive(false);
-        VerifyInviteCodeRequest request = new VerifyInviteCodeRequest(testCode, "user123");
+        VerifyInviteCodeRequest request = new VerifyInviteCodeRequest();
+        request.setCode(testCode);
+        request.setUserId("user123");
+        
         when(inviteCodeRepository.findByCode(testCode)).thenReturn(Optional.of(inviteCode));
 
         // Act

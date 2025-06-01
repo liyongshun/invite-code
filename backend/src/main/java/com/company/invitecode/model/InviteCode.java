@@ -1,9 +1,5 @@
 package com.company.invitecode.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -11,11 +7,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
 @Entity
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "invite_codes")
 public class InviteCode {
 
@@ -37,8 +29,67 @@ public class InviteCode {
     private String createdBy;
     
     @Column(name = "is_active")
-    private boolean isActive;
+    private boolean active;
     
     @OneToMany(mappedBy = "inviteCode", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UsageRecord> usageRecords = new ArrayList<>();
+    
+    public InviteCode() {
+    }
+    
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
+    public void setCreatedBy(String createdBy) {
+        this.createdBy = createdBy;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public List<UsageRecord> getUsageRecords() {
+        return usageRecords;
+    }
+
+    public void setUsageRecords(List<UsageRecord> usageRecords) {
+        this.usageRecords = usageRecords;
+    }
 } 

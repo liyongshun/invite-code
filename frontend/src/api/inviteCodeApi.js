@@ -18,9 +18,27 @@ api.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+    console.log('发送请求:', config.method.toUpperCase(), config.url, config.data || config.params);
     return config;
   },
   (error) => {
+    console.error('请求拦截器错误:', error);
+    return Promise.reject(error);
+  }
+);
+
+// 响应拦截器 - 处理响应
+api.interceptors.response.use(
+  (response) => {
+    console.log('收到响应:', response.config.url, response.status, response.data);
+    return response;
+  },
+  (error) => {
+    console.error('请求错误:', error.config?.url, error.message);
+    if (error.response) {
+      console.error('错误状态码:', error.response.status);
+      console.error('错误数据:', error.response.data);
+    }
     return Promise.reject(error);
   }
 );
@@ -32,6 +50,7 @@ export const verifyInviteCode = (code, userId = '') => {
 
 // 生成邀请码
 export const generateInviteCodes = (count, description = '') => {
+  console.log('调用生成邀请码API，参数:', { count, description });
   return api.post('/invite-codes/generate', { count, description });
 };
 
@@ -62,14 +81,6 @@ export const enableInviteCode = (id) => {
 
 // 管理员登录
 export const adminLogin = (username, password) => {
-  // 这里简化处理，实际应该调用后端登录接口
-  return new Promise((resolve, reject) => {
-    if (username === 'admin' && password === 'admin123') {
-      const mockToken = 'mock-jwt-token';
-      localStorage.setItem('token', mockToken);
-      resolve({ data: { success: true, data: { token: mockToken } } });
-    } else {
-      reject({ response: { data: { success: false, message: '用户名或密码错误' } } });
-    }
-  });
+  // 调用后端登录接口
+  return api.post('/auth/login', { username, password });
 }; 

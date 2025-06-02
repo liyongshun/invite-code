@@ -44,35 +44,59 @@ public class InviteCodeServiceImpl implements InviteCodeService {
     private String generateRandomCode() {
         // 生成8-10位随机字符串，包含数字和大写字母
         String uuid = UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
-        return uuid.substring(0, 8 + (int) (Math.random() * 3)); // 8-10位
+        String code = uuid.substring(0, 8 + (int) (Math.random() * 3)); // 8-10位
+        log.debug("生成随机邀请码: {}", code);
+        return code;
     }
 
     @Override
     @Transactional
     public List<InviteCodeDto> generateInviteCodes(GenerateInviteCodeRequest request, String createdBy) {
-        int count = request.getCount();
-        String batchId = UUID.randomUUID().toString();
+        log.info("开始生成邀请码，数量: {}, 描述: {}, 创建人: {}", request.getCount(), request.getDescription(), createdBy);
         
-        List<InviteCode> inviteCodes = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            String code;
-            do {
-                code = generateRandomCode();
-            } while (inviteCodeRepository.existsByCode(code));
+        try {
+            int count = request.getCount();
+            String batchId = UUID.randomUUID().toString();
+            log.debug("生成批次ID: {}", batchId);
             
-            InviteCode inviteCode = new InviteCode();
-            inviteCode.setCode(code);
-            inviteCode.setBatchId(batchId);
-            inviteCode.setCreatedBy(createdBy);
-            inviteCode.setActive(true);
+            List<InviteCode> inviteCodes = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                String code;
+                int attempts = 0;
+                do {
+                    code = generateRandomCode();
+                    attempts++;
+                    if (attempts > 5) {
+                        log.warn("尝试{}次后仍未生成唯一邀请码", attempts);
+                    }
+                } while (inviteCodeRepository.existsByCode(code));
+                
+                log.debug("创建第{}个邀请码: {}", i+1, code);
+                
+                InviteCode inviteCode = new InviteCode();
+                inviteCode.setCode(code);
+                inviteCode.setBatchId(batchId);
+                inviteCode.setCreatedBy(createdBy);
+                inviteCode.setActive(true);
+                inviteCode.setDescription(request.getDescription());
+                
+                inviteCodes.add(inviteCode);
+            }
             
-            inviteCodes.add(inviteCode);
+            log.debug("开始保存{}个邀请码到数据库", inviteCodes.size());
+            List<InviteCode> savedInviteCodes = inviteCodeRepository.saveAll(inviteCodes);
+            log.info("成功保存{}个邀请码到数据库", savedInviteCodes.size());
+            
+            List<InviteCodeDto> dtos = savedInviteCodes.stream()
+                    .map(this::convertToDto)
+                    .collect(Collectors.toList());
+            
+            log.info("生成邀请码完成，返回{}个DTO对象", dtos.size());
+            return dtos;
+        } catch (Exception e) {
+            log.error("生成邀请码异常", e);
+            throw e;
         }
-        
-        List<InviteCode> savedInviteCodes = inviteCodeRepository.saveAll(inviteCodes);
-        return savedInviteCodes.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -184,6 +208,7 @@ public class InviteCodeServiceImpl implements InviteCodeService {
         dto.setBatchId(inviteCode.getBatchId());
         dto.setCreatedAt(inviteCode.getCreatedAt());
         dto.setCreatedBy(inviteCode.getCreatedBy());
+        dto.setDescription(inviteCode.getDescription());
         dto.setActive(inviteCode.isActive());
         dto.setUsageCount(usageCount);
         return dto;

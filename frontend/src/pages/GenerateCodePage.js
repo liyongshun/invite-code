@@ -23,14 +23,37 @@ const GenerateCodePage = () => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
+      console.log('发送请求生成邀请码，参数:', values);
       const response = await generateInviteCodes(values.count, values.description);
-      const data = response.data.data;
+      console.log('生成邀请码响应:', response);
       
-      setGeneratedCodes(data);
-      message.success(`成功生成 ${data.length} 个邀请码`);
+      if (response && response.data) {
+        const data = response.data.data;
+        console.log('响应数据:', data);
+        
+        if (Array.isArray(data) && data.length > 0) {
+          setGeneratedCodes(data);
+          message.success(`成功生成 ${data.length} 个邀请码`);
+        } else {
+          console.error('响应数据格式不正确:', data);
+          message.error('生成邀请码失败: 响应数据格式不正确');
+        }
+      } else {
+        console.error('响应格式不正确:', response);
+        message.error('生成邀请码失败: 响应格式不正确');
+      }
     } catch (error) {
-      message.error('生成邀请码失败');
-      console.error(error);
+      console.error('生成邀请码异常:', error);
+      if (error.response) {
+        console.error('错误响应:', error.response);
+        message.error(`生成邀请码失败: ${error.response.data?.message || '服务器错误'}`);
+      } else if (error.request) {
+        console.error('请求未收到响应:', error.request);
+        message.error('生成邀请码失败: 服务器无响应');
+      } else {
+        console.error('请求配置错误:', error.message);
+        message.error(`生成邀请码失败: ${error.message}`);
+      }
     } finally {
       setLoading(false);
     }

@@ -20,6 +20,9 @@ public class InviteCode {
 
     @Column(name = "batch_id")
     private String batchId;
+    
+    @Column(name = "description")
+    private String description;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -59,6 +62,14 @@ public class InviteCode {
 
     public void setBatchId(String batchId) {
         this.batchId = batchId;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public LocalDateTime getCreatedAt() {

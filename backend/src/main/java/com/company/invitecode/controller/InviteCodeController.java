@@ -36,12 +36,22 @@ public class InviteCodeController {
      * 生成邀请码
      */
     @PostMapping("/generate")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<InviteCodeDto>>> generateInviteCodes(
-            @Valid @RequestBody GenerateInviteCodeRequest request) {
-        log.info("生成邀请码请求: {}", request);
-        List<InviteCodeDto> inviteCodes = inviteCodeService.generateInviteCodes(request, "admin");
-        return ResponseEntity.ok(ApiResponse.success("成功生成" + inviteCodes.size() + "个邀请码", inviteCodes));
+            @Valid @RequestBody GenerateInviteCodeRequest request,
+            HttpServletRequest httpRequest) {
+        log.info("收到生成邀请码请求: {}, 请求源: {}", request, httpRequest.getRemoteAddr());
+        try {
+            log.info("开始处理生成邀请码请求");
+            List<InviteCodeDto> inviteCodes = inviteCodeService.generateInviteCodes(request, "admin");
+            log.info("成功生成{}个邀请码", inviteCodes.size());
+            
+            ApiResponse<List<InviteCodeDto>> response = ApiResponse.success("成功生成" + inviteCodes.size() + "个邀请码", inviteCodes);
+            log.info("生成邀请码响应: {}", response);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("生成邀请码异常", e);
+            return ResponseEntity.ok(ApiResponse.error("生成邀请码失败: " + e.getMessage()));
+        }
     }
 
     /**
@@ -69,7 +79,6 @@ public class InviteCodeController {
      * 获取所有邀请码
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<InviteCodeDto>>> getAllInviteCodes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -87,7 +96,6 @@ public class InviteCodeController {
      * 获取邀请码详情
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<InviteCodeDto>> getInviteCode(@PathVariable Long id) {
         return inviteCodeService.getInviteCode(id)
                 .map(inviteCodeDto -> ResponseEntity.ok(ApiResponse.success(inviteCodeDto)))
@@ -98,7 +106,6 @@ public class InviteCodeController {
      * 根据邀请码字符串获取详情
      */
     @GetMapping("/code/{code}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<InviteCodeDto>> getInviteCodeByCode(@PathVariable String code) {
         return inviteCodeService.getInviteCodeByCode(code)
                 .map(inviteCodeDto -> ResponseEntity.ok(ApiResponse.success(inviteCodeDto)))
@@ -109,7 +116,6 @@ public class InviteCodeController {
      * 获取邀请码使用记录
      */
     @GetMapping("/{id}/usage-records")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<UsageRecordDto>>> getInviteCodeUsageRecords(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
@@ -124,7 +130,6 @@ public class InviteCodeController {
      * 禁用邀请码
      */
     @PutMapping("/{id}/disable")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<InviteCodeDto>> disableInviteCode(@PathVariable Long id) {
         return inviteCodeService.disableInviteCode(id)
                 .map(inviteCodeDto -> ResponseEntity.ok(ApiResponse.success("邀请码已禁用", inviteCodeDto)))
@@ -135,7 +140,6 @@ public class InviteCodeController {
      * 启用邀请码
      */
     @PutMapping("/{id}/enable")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<InviteCodeDto>> enableInviteCode(@PathVariable Long id) {
         return inviteCodeService.enableInviteCode(id)
                 .map(inviteCodeDto -> ResponseEntity.ok(ApiResponse.success("邀请码已启用", inviteCodeDto)))

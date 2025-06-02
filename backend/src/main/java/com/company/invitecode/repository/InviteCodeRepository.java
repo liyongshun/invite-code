@@ -17,5 +17,5 @@ public interface InviteCodeRepository extends JpaRepository<InviteCode, Long> {
     
     Page<InviteCode> findByBatchId(String batchId, Pageable pageable);
     
-    Page<InviteCode> findByIsActive(boolean isActive, Pageable pageable);
+    Page<InviteCode> findByActive(boolean isActive, Pageable pageable);
 } 

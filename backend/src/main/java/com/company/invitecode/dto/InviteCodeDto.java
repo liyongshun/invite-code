@@ -10,6 +10,7 @@ public class InviteCodeDto {
     private String createdBy;
     private boolean active;
     private int usageCount;
+    private String description;
     
     public InviteCodeDto() {
     }
@@ -68,5 +69,13 @@ public class InviteCodeDto {
     
     public void setUsageCount(int usageCount) {
         this.usageCount = usageCount;
+    }
+    
+    public String getDescription() {
+        return description;
+    }
+    
+    public void setDescription(String description) {
+        this.description = description;
     }
 } 

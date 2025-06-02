@@ -16,9 +16,18 @@ const AdminLoginPage = () => {
     setError('');
     
     try {
-      await adminLogin(values.username, values.password);
-      navigate('/admin');
+      const response = await adminLogin(values.username, values.password);
+      console.log('登录响应:', response);
+      
+      if (response.data && response.data.success) {
+        // 保存token到localStorage
+        localStorage.setItem('token', response.data.data.token);
+        navigate('/admin');
+      } else {
+        setError(response.data?.message || '登录失败，请检查用户名和密码');
+      }
     } catch (err) {
+      console.error('登录错误:', err);
       setError(err.response?.data?.message || '登录失败，请检查用户名和密码');
     } finally {
       setLoading(false);
